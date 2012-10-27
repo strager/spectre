@@ -31,6 +31,7 @@ newtype VarsT m a = VarsT
   deriving (Functor, Applicative, Monad, MonadTrans, MonadIO)
 
 newtype Var a = Var Int
+  deriving (Eq, Ord)
 
 curID :: IORef Int
 curID = unsafePerformIO $ newIORef 0
