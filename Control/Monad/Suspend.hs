@@ -9,8 +9,9 @@ module Control.Monad.Suspend
   , streamSuspendT
   ) where
 
+import Control.Applicative
 import Control.Monad
-import Control.Monad.Trans.Class
+import Control.Monad.Trans
 
 -- | The result of 'SuspendT', or a continuation.
 --
@@ -26,6 +27,13 @@ instance (Show a) => Show (Suspended k m a) where
 newtype SuspendT k m a = SuspendT
   { runSuspendT :: m (Suspended k m a) }
 
+instance (Monad m) => Functor (SuspendT k m) where
+  fmap f m = m >>= return . f
+
+instance (Monad m) => Applicative (SuspendT k m) where
+  pure = return
+  (<*>) = ap
+
 instance (Monad m) => Monad (SuspendT k m) where
   return x = SuspendT . return
     $ Result x
@@ -39,6 +47,9 @@ instance (Monad m) => Monad (SuspendT k m) where
 
 instance MonadTrans (SuspendT k) where
   lift m = SuspendT $ liftM Result m
+
+instance (MonadIO m) => MonadIO (SuspendT k m) where
+  liftIO = lift . liftIO
 
 suspend :: (Monad m) => SuspendT a m a
 suspend = SuspendT . return
